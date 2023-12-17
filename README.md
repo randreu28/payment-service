@@ -5,7 +5,7 @@ A backend API for economic transactions, using Go and PostgreSQL.
 ## Roadmap
 
 1. Learn the basics of Go and set up a basic Go server
-2. Create a postgreSQL database.
+2. Create a postgreSQL database.✅
 3. Write the schema for the PostgreSQL database.
 4. Connect the Go server to a PostgreSQL database.
 5. Test the schema with Postman or other Go-specific testing tools.
