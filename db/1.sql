@@ -1,0 +1,13 @@
+CREATE TABLE clients (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100) UNIQUE NOT NULL
+);
+
+CREATE TABLE payments (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES clients(id),
+    amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

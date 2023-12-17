@@ -1,0 +1,12 @@
+version: "3"
+services:
+  db:
+    container_name: payment-service-db
+    image: postgres:latest
+    restart: always
+    env_file:
+      - .env.local
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
