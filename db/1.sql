@@ -1,13 +1,17 @@
-CREATE TABLE clients (
+CREATE TABLE accounts (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100),
-    email VARCHAR(100) UNIQUE NOT NULL
+    account_owner TEXT NOT NULL,
+    balance MONEY NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE payments (
+CREATE TABLE transactions (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES clients(id),
-    amount DECIMAL(10, 2) NOT NULL,
-    status VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    account_from INTEGER NOT NULL REFERENCES accounts(id),
+    account_to INTEGER NOT NULL REFERENCES accounts(id),
+    amount MONEY NOT NULL,
+    transaction_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    description TEXT
 );
+
