@@ -11,7 +11,7 @@ CREATE TABLE transactions (
     account_from INTEGER NOT NULL REFERENCES accounts(id),
     account_to INTEGER NOT NULL REFERENCES accounts(id),
     amount MONEY NOT NULL,
-    transaction_date TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     description TEXT
 );
 
