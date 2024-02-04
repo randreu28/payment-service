@@ -7,14 +7,14 @@ import (
 )
 
 // Health Returns the current date and status OK
-func Health(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+func Health(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
 
-	response := map[string]string{
+	jsonRes := map[string]string{
 		"timestamp": time.Now().Format(time.RFC3339),
 		"status":    "OK",
 	}
 
-	json.NewEncoder(w).Encode(response)
+	json.NewEncoder(res).Encode(jsonRes)
 }
