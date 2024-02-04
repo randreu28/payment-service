@@ -54,7 +54,7 @@ func main() {
 		createdAt := time.Now().AddDate(0, 0, -rand.Intn(10))
 		insertTransaction(db, from, to, amount, description, createdAt)
 
-		fmt.Printf("Transaction inserted with amount %.2f from account id %d to a cacount id %d\n", amount, from, to)
+		fmt.Printf("Transaction inserted with amount %.2f from account id %d to account id %d\n", amount, from, to)
 	}
 }
 
