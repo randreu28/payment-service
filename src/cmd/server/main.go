@@ -12,19 +12,19 @@ import (
 )
 
 func main() {
-	env.Load()
+	env.Load("../.env.local")
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3000"
 	}
 
-	r := mux.NewRouter()
+	router := mux.NewRouter()
 
-	r.HandleFunc("/health", routes.Health)
-	// TODO: Add more routes here
+	router.HandleFunc("/health", routes.Health)
+	router.HandleFunc("/accounts", routes.CreateNewAccount)
 
-	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
+	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
 	fmt.Println("Server listening to port", port)
 	http.ListenAndServe(":"+port, loggedRouter)
 

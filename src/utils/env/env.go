@@ -7,8 +7,8 @@ import (
 )
 
 // Load Loads the enviroment variables
-func Load() {
-	err := godotenv.Load("../.env.local")
+func Load(dir string) {
+	err := godotenv.Load(dir)
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
