@@ -2,7 +2,6 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 	"sync"
@@ -21,11 +20,10 @@ func Open() *sql.DB {
 
 		dbURI := os.Getenv("DB_URI")
 		if dbURI == "" {
-			log.Fatal("DB_URI environment variable missing")
+			log.Panic("DB_URI environment variable missing")
 		}
 
-		var errOpen error
-		db, errOpen = sql.Open("postgres", dbURI)
+		db, errOpen := sql.Open("postgres", dbURI)
 		if errOpen != nil {
 			log.Fatalf("Error opening database: %v", errOpen)
 		}
@@ -34,7 +32,7 @@ func Open() *sql.DB {
 			log.Fatalf("Error connecting to the database: %v", errPing)
 		}
 
-		fmt.Println("Database connection open")
+		log.Println("Database connection open")
 	})
 	return db
 }
@@ -46,6 +44,6 @@ func Close() {
 		if err != nil {
 			log.Fatalf("Error closing database: %v", err)
 		}
-		fmt.Println("Database connection closed")
+		log.Println("Database connection closed")
 	}
 }

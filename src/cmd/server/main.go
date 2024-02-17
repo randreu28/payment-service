@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -46,7 +45,8 @@ func main() {
 		}
 
 		if err != nil {
-			panic(fmt.Sprintf("Error starting server: %s\n", err))
+			log.Fatal("Error starting server")
+			panic(err)
 		}
 	}()
 
@@ -61,10 +61,10 @@ func main() {
 
 	err := server.Shutdown(ctx)
 	if err != nil {
-		fmt.Printf("Server Shutdown Failed:%+v", err)
+		log.Printf("Server Shutdown Failed:%+v", err)
 	}
 
 	db.Close()
 
-	fmt.Println("Server and database connection gracefully closed")
+	log.Println("Server and database connection gracefully closed")
 }

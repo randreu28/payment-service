@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"math/rand"
 	"os"
 	"strconv"
@@ -32,7 +33,7 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Successfully connected to the database")
+	log.Println("Successfully connected to the database")
 	amount := getAmount()
 
 	// Populate accounts
@@ -41,8 +42,7 @@ func main() {
 		balance := rand.Float64() * 1000
 		createdAt := time.Now().AddDate(0, 0, -rand.Intn(10))
 		insertAccount(db, accountName, balance, createdAt, createdAt)
-
-		fmt.Printf("Account with name %s inserted with balance %.2f\n", accountName, balance)
+		log.Printf("Account with name %s inserted with balance %.2f\n", accountName, balance)
 	}
 
 	// Populate transactions
@@ -54,7 +54,7 @@ func main() {
 		createdAt := time.Now().AddDate(0, 0, -rand.Intn(10))
 		insertTransaction(db, from, to, amount, description, createdAt)
 
-		fmt.Printf("Transaction inserted with amount %.2f from account id %d to account id %d\n", amount, from, to)
+		log.Printf("Transaction inserted with amount %.2f from account id %d to account id %d\n", amount, from, to)
 	}
 }
 
@@ -62,7 +62,7 @@ func main() {
 func insertAccount(db *sql.DB, owner string, balance float64, createdAt time.Time, updatedAt time.Time) {
 	_, err := db.Exec("INSERT INTO accounts (account_owner, balance, created_at, updated_at) VALUES ($1, $2, $3, $4)", owner, balance, createdAt, updatedAt)
 	if err != nil {
-		fmt.Println("Error inserting account:", err)
+		log.Println("Error inserting account:", err)
 	}
 }
 
@@ -70,7 +70,7 @@ func insertAccount(db *sql.DB, owner string, balance float64, createdAt time.Tim
 func insertTransaction(db *sql.DB, from, to int, amount float64, description string, createdAt time.Time) {
 	_, err := db.Exec("INSERT INTO transactions (account_from, account_to, amount, description, created_at) VALUES ($1, $2, $3, $4, $5)", from, to, amount, description, createdAt)
 	if err != nil {
-		fmt.Println("Error inserting transaction:", err)
+		log.Println("Error inserting transaction:", err)
 	}
 }
 
