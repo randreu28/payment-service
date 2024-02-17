@@ -3,13 +3,13 @@ package routes
 import (
 	"net/http"
 	"net/http/httptest"
-	"payment_service/utils/env"
+	env "payment_service/utils/env"
 	"strings"
 	"testing"
 )
 
 func TestCreateNewAccount(t *testing.T) {
-	env.Load("../../.env.local")
+	env.Load()
 
 	body := strings.NewReader(`{"owner":"John Doe"}`)
 	req, err := http.NewRequest("POST", "/account", body)
@@ -26,4 +26,5 @@ func TestCreateNewAccount(t *testing.T) {
 	if status := res.Code; status != http.StatusOK {
 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
 	}
+
 }

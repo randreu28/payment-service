@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	env.Load("../.env.local")
+	env.Load()
 
 	port := os.Getenv("PORT")
 	if port == "" {
