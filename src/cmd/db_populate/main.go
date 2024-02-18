@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -15,7 +16,15 @@ import (
 
 func main() {
 	// Loads enviroment variables
-	err := godotenv.Load(".env.local")
+	executablePath, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	basePath := filepath.Dir(executablePath)
+	filePath := filepath.Join(basePath, ".env.local")
+	err = godotenv.Load(filePath)
+
 	dbURI := os.Getenv("DB_URI")
 
 	if err != nil || dbURI == "" {

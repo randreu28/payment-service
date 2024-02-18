@@ -8,8 +8,8 @@ CREATE TABLE accounts (
 
 CREATE TABLE transactions (
     id SERIAL PRIMARY KEY,
-    account_from INTEGER NOT NULL REFERENCES accounts(id),
-    account_to INTEGER NOT NULL REFERENCES accounts(id),
+    account_from INTEGER NOT NULL REFERENCES accounts(id) ON DELETE SET NULL,
+    account_to INTEGER NOT NULL REFERENCES accounts(id) ON DELETE SET NULL,
     amount MONEY NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     description TEXT
