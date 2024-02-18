@@ -28,6 +28,7 @@ func main() {
 	router.HandleFunc("/health", routes.Health)
 	router.HandleFunc("/accounts", routes.CreateNewAccount).Methods("POST")
 	router.HandleFunc("/accounts/{id}", routes.GetAccountDetails).Methods("GET")
+	router.HandleFunc("/accounts/{id}", routes.DeleteAccount).Methods("DELETE")
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
 	server := &http.Server{

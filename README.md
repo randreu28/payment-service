@@ -32,21 +32,13 @@ go run src/db_populate/main.go 123
 
 POST /accounts { "account_owner": "string" }
 
-> Creates a new account with an initial balance of 0.
-
-GET /accounts
-
-> Retrieves a list of all accounts.
+> Creates a new account with an initial balance of 0. ✅
 
 GET /accounts/{id}
 
-> Retrieves details of a specific account by its ID.
+> Retrieves details of a specific account by its ID. ✅
 
-PUT /accounts/{id} { "account_owner": "string", "balance": "money" }
-
-> Updates the specified fields of an account. (Note: Directly updating the balance might not be a good practice; typically, balance updates would be handled through transactions.)
-
-DELETE /accounts/{id}
+DELETE /accounts/{id} ✅
 
 > Deletes a specific account by its ID.
 

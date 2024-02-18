@@ -46,6 +46,7 @@ func CreateNewAccount(res http.ResponseWriter, req *http.Request) {
 	})
 
 }
+
 func GetAccountDetails(res http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	unparsedAccountId := vars["id"]
@@ -79,5 +80,31 @@ func GetAccountDetails(res http.ResponseWriter, req *http.Request) {
 		"balance":       balance,
 		"created_at":    createdAt.Format(time.RFC3339),
 		"updated_at":    updatedAt.Format(time.RFC3339),
+	})
+}
+
+func DeleteAccount(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	unparsedAccountId := vars["id"]
+
+	accountId, err := strconv.Atoi(unparsedAccountId)
+
+	if err != nil {
+		http.Error(res, "Account ID must be a number", http.StatusBadRequest)
+		return
+	}
+
+	db := db.Open()
+
+	_, err = db.Exec("DELETE FROM accounts WHERE id = $1", accountId)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res.WriteHeader(http.StatusOK)
+	json.NewEncoder(res).Encode(map[string]string{
+		"status":  "OK",
+		"message": "Account successfully deleted",
 	})
 }
