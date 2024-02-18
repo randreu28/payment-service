@@ -95,6 +95,7 @@ func DeleteAccount(res http.ResponseWriter, req *http.Request) {
 	}
 
 	db := db.Open()
+	defer db.Close()
 
 	_, err = db.Exec("DELETE FROM accounts WHERE id = $1", accountId)
 	if err != nil {

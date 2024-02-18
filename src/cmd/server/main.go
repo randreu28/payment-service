@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"payment_service/routes"
-	db "payment_service/utils/database"
 	"payment_service/utils/env"
 	"syscall"
 	"time"
@@ -64,8 +63,6 @@ func main() {
 	if err != nil {
 		log.Printf("Server Shutdown Failed:%+v", err)
 	}
-
-	db.Close()
 
 	log.Println("Server and database connection gracefully closed")
 }
