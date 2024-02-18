@@ -45,27 +45,14 @@ DELETE /accounts/{id} ✅
 
 ### Transactions
 
-POST /transactions { "account_from": "integer", "account_to": "integer", "amount": "money", "description": "string" }
-
-> Creates a new transaction, transferring money from one account to another.
-
-GET /transactions
-
-> Retrieves a list of all transactions.
-
 GET /transactions/{id}
 
 > Retrieves details of a specific transaction by its ID.
-Additional Functionalities
-
-GET /accounts/{id}/balance
-
-> Retrieves the current balance of a specific account.
-
-POST /transfer { "account_from": "integer", "account_to": "integer", "amount": "money" }
-
-> A specialized endpoint to facilitate money transfer between accounts, wrapping the transaction creation process with additional validations.
 
 GET /accounts/{id}/transactions
 
 > Retrieves a list of all transactions involving a specific account, either as the sender or receiver.
+
+POST /transfer { "account_from": "integer", "account_to": "integer", "amount": "money" }
+
+> A specialized endpoint to facilitate money transfer between accounts, wrapping the transaction creation process with additional validations.  
