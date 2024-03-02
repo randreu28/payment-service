@@ -6,43 +6,18 @@ import (
 	"log"
 	"math/rand"
 	"os"
-	"path/filepath"
+	db "payment_service/utils/database"
+	"payment_service/utils/env"
 	"strconv"
 	"time"
 
-	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	// Loads enviroment variables
-	executablePath, err := os.Getwd()
-	if err != nil {
-		panic(err)
-	}
-
-	basePath := filepath.Dir(executablePath)
-	filePath := filepath.Join(basePath, ".env.local")
-	err = godotenv.Load(filePath)
-
-	dbURI := os.Getenv("DB_URI")
-
-	if err != nil || dbURI == "" {
-		panic("Enviroment variables missing")
-	}
-
-	// Opens a TCP/IP connection to the database
-	db, err := sql.Open("postgres", dbURI)
-	if err != nil {
-		panic(err)
-	}
+	env.Load()
+	db := db.Open()
 	defer db.Close()
-
-	if err = db.Ping(); err != nil {
-		panic(err)
-	}
-
-	log.Println("Successfully connected to the database")
 	amount := getAmount()
 
 	// Populate accounts
@@ -50,40 +25,40 @@ func main() {
 		accountName := fmt.Sprintf("Owner%d", i+1)
 		balance := rand.Float64() * 1000
 		createdAt := time.Now().AddDate(0, 0, -rand.Intn(10))
-		insertAccount(db, accountName, balance, createdAt, createdAt)
+		insertAccount(db, i+1, accountName, balance, createdAt, createdAt)
 		log.Printf("Account with name %s inserted with balance %.2f\n", accountName, balance)
 	}
 
 	// Populate transactions
 	for i := 0; i < amount; i++ {
-		from := rand.Intn(10) + 1
-		to := rand.Intn(10) + 1
+		from := rand.Intn(amount) + 1
+		to := rand.Intn(amount) + 1
 		amount := rand.Float64() * 100
 		description := fmt.Sprintf("This is a random generated description with tag %d", i+1)
 		createdAt := time.Now().AddDate(0, 0, -rand.Intn(10))
-		insertTransaction(db, from, to, amount, description, createdAt)
+		insertTransaction(db, i+1, from, to, amount, description, createdAt)
 
 		log.Printf("Transaction inserted with amount %.2f from account id %d to account id %d\n", amount, from, to)
 	}
 }
 
 // insertAccount Inserts a random account to the database
-func insertAccount(db *sql.DB, owner string, balance float64, createdAt time.Time, updatedAt time.Time) {
-	_, err := db.Exec("INSERT INTO accounts (account_owner, balance, created_at, updated_at) VALUES ($1, $2, $3, $4)", owner, balance, createdAt, updatedAt)
+func insertAccount(db *sql.DB, id int, owner string, balance float64, createdAt time.Time, updatedAt time.Time) {
+	_, err := db.Exec("INSERT INTO accounts (id, account_owner, balance, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)", id, owner, balance, createdAt, updatedAt)
 	if err != nil {
 		log.Println("Error inserting account:", err)
 	}
 }
 
 // insertTransaction Inserts a random transaction to the database
-func insertTransaction(db *sql.DB, from, to int, amount float64, description string, createdAt time.Time) {
-	_, err := db.Exec("INSERT INTO transactions (account_from, account_to, amount, description, created_at) VALUES ($1, $2, $3, $4, $5)", from, to, amount, description, createdAt)
+func insertTransaction(db *sql.DB, id int, from int, to int, amount float64, description string, createdAt time.Time) {
+	_, err := db.Exec("INSERT INTO transactions (id, account_from, account_to, amount, description, created_at) VALUES ($1, $2, $3, $4, $5, $6)", id, from, to, amount, description, createdAt)
 	if err != nil {
 		log.Println("Error inserting transaction:", err)
 	}
 }
 
-// getAmount Retrieves the first argument when main is called. If none is provided, it uses a default value
+// getAmount Retrieves the first argument when main is called. If none is provided, it uses a default value of 100
 func getAmount() int {
 	if len(os.Args) > 1 {
 		if num, err := strconv.Atoi(os.Args[1]); err == nil {
