@@ -30,13 +30,13 @@ go run src/db_populate/main.go 123
 
 ### Accounts
 
-POST /accounts { "account_owner": "string" }
+POST /accounts { "account_owner": "string" } ✅
 
-> Creates a new account with an initial balance of 0. ✅
+> Creates a new account with an initial balance of 0. 
 
-GET /accounts/{id}
+GET /accounts/{id} ✅
 
-> Retrieves details of a specific account by its ID. ✅
+> Retrieves details of a specific account by its ID. 
 
 DELETE /accounts/{id} ✅
 
@@ -45,7 +45,7 @@ DELETE /accounts/{id} ✅
 
 ### Transactions
 
-GET /transactions/{id}
+GET /transactions/{id} ✅
 
 > Retrieves details of a specific transaction by its ID.
 
