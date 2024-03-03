@@ -38,7 +38,7 @@ func PopulateDB(db *sql.DB, amount int) {
 		accountName := fmt.Sprintf("Owner%d", i+1)
 		balance := rand.Float64() * 1000
 		createdAt := time.Now().AddDate(0, 0, -rand.Intn(10))
-		_, err := db.Exec("INSERT INTO accounts (id, account_owner, balance, created_at, updated_at) VALUES ($1, $2, $3, $4, $5)", i+1, accountName, balance, createdAt, createdAt)
+		_, err := db.Exec("INSERT INTO accounts (account_owner, balance, created_at, updated_at) VALUES ($1, $2, $3, $4)", accountName, balance, createdAt, createdAt)
 		if err != nil {
 			log.Println("Error inserting account:", err)
 			return
@@ -54,7 +54,7 @@ func PopulateDB(db *sql.DB, amount int) {
 		amount := rand.Float64() * 100
 		description := fmt.Sprintf("This is a random generated description with tag %d", i+1)
 		createdAt := time.Now().AddDate(0, 0, -rand.Intn(10))
-		_, err := db.Exec("INSERT INTO transactions (id, account_from, account_to, amount, description, created_at) VALUES ($1, $2, $3, $4, $5, $6)", i+1, from, to, amount, description, createdAt)
+		_, err := db.Exec("INSERT INTO transactions (account_from, account_to, amount, description, created_at) VALUES ($1, $2, $3, $4, $5)", from, to, amount, description, createdAt)
 		if err != nil {
 			log.Println("Error inserting transaction:", err)
 			return
@@ -71,9 +71,21 @@ func CleanupDB(db *sql.DB) {
 		return
 	}
 
+	_, err = db.Exec("ALTER SEQUENCE accounts_id_seq RESTART WITH 1")
+	if err != nil {
+		log.Println("Error resetting sequence:", err)
+		return
+	}
+
 	_, err = db.Exec("DELETE FROM transactions")
 	if err != nil {
 		log.Println("Error deleting transactions:", err)
+		return
+	}
+
+	_, err = db.Exec("ALTER SEQUENCE transactions_id_seq RESTART WITH 1")
+	if err != nil {
+		log.Println("Error resetting sequence:", err)
 		return
 	}
 
