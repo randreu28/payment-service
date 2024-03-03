@@ -29,6 +29,8 @@ func main() {
 	router.HandleFunc("/accounts/{id}", routes.GetAccountDetails).Methods("GET")
 	router.HandleFunc("/accounts/{id}", routes.DeleteAccount).Methods("DELETE")
 	router.HandleFunc("/transactions/{id}", routes.GetTransactionDetails).Methods("GET")
+	router.HandleFunc("/accounts/{id}/transactions", routes.GetAccountTransactions).Methods("GET")
+	router.HandleFunc("/transfer", routes.TransferMoney).Methods("POST")
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
 	server := &http.Server{
