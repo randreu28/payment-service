@@ -50,3 +50,50 @@ func GetTransactionDetails(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 	json.NewEncoder(res).Encode(transaction)
 }
+
+func GetAccountTransactions(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	unparsedAccountId := vars["id"]
+
+	accountId, err := strconv.Atoi(unparsedAccountId)
+	if err != nil {
+		http.Error(res, "Account ID must be a number", http.StatusBadRequest)
+		return
+	}
+
+	db := db.Open()
+	defer db.Close()
+
+	rows, err := db.Query("SELECT * FROM transactions WHERE account_from = $1 OR account_to = $1", accountId)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer rows.Close()
+
+	var transactions []TransactionDetails
+
+	for rows.Next() {
+		var transaction TransactionDetails
+		err = rows.Scan(
+			&transaction.ID,
+			&transaction.AccountFrom,
+			&transaction.AccountTo,
+			&transaction.Amount,
+			&transaction.CreatedAt,
+			&transaction.Description)
+		if err != nil {
+			http.Error(res, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		transactions = append(transactions, transaction)
+	}
+
+	if err = rows.Err(); err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res.WriteHeader(http.StatusOK)
+	json.NewEncoder(res).Encode(transactions)
+}

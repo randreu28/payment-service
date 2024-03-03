@@ -49,7 +49,7 @@ GET /transactions/{id} ✅
 
 > Retrieves details of a specific transaction by its ID.
 
-GET /accounts/{id}/transactions
+GET /accounts/{id}/transactions ✅
 
 > Retrieves a list of all transactions involving a specific account, either as the sender or receiver.
 
