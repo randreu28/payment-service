@@ -5,6 +5,7 @@ import (
 	"net/http"
 	db "payment_service/utils/database"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -17,6 +18,12 @@ type TransactionDetails struct {
 	Amount      string    `json:"amount"`
 	CreatedAt   time.Time `json:"created_at"`
 	Description string    `json:"description"`
+}
+
+type TransferRequest struct {
+	AccountFrom int     `json:"account_from"`
+	AccountTo   int     `json:"account_to"`
+	Amount      float64 `json:"amount"`
 }
 
 func GetTransactionDetails(res http.ResponseWriter, req *http.Request) {
@@ -96,4 +103,79 @@ func GetAccountTransactions(res http.ResponseWriter, req *http.Request) {
 
 	res.WriteHeader(http.StatusOK)
 	json.NewEncoder(res).Encode(transactions)
+}
+
+func TransferMoney(res http.ResponseWriter, req *http.Request) {
+	var transferDetails TransferRequest
+	err := json.NewDecoder(req.Body).Decode(&transferDetails)
+	if err != nil {
+		http.Error(res, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	if transferDetails.AccountFrom == transferDetails.AccountTo {
+		http.Error(res, "Sender and receiver accounts must be different", http.StatusBadRequest)
+		return
+	}
+
+	if transferDetails.Amount <= 0 {
+		http.Error(res, "Transfer amount must be positive", http.StatusBadRequest)
+		return
+	}
+
+	db := db.Open()
+	defer db.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		http.Error(res, "Could not start database transaction", http.StatusInternalServerError)
+		return
+	}
+	defer tx.Rollback()
+
+	var balance string
+	err = tx.QueryRow("SELECT balance FROM accounts WHERE id = $1", transferDetails.AccountFrom).Scan(&balance)
+
+	if err != nil {
+		http.Error(res, "Sender account not found", http.StatusBadRequest)
+		return
+	}
+	balanceFloat, err := strconv.ParseFloat(strings.TrimPrefix(balance, "$"), 64)
+	if err != nil {
+		http.Error(res, "Could not convert balance to float", http.StatusInternalServerError)
+		return
+	}
+
+	if balanceFloat < transferDetails.Amount {
+		http.Error(res, "Insufficient funds", http.StatusBadRequest)
+		return
+	}
+
+	_, err = tx.Exec("UPDATE accounts SET balance = balance - $1 WHERE id = $2", transferDetails.Amount, transferDetails.AccountFrom)
+	if err != nil {
+		http.Error(res, "Could not update sender account balance", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = tx.Exec("UPDATE accounts SET balance = balance + $1 WHERE id = $2", transferDetails.Amount, transferDetails.AccountTo)
+	if err != nil {
+		http.Error(res, "Could not update receiver account balance", http.StatusInternalServerError)
+		return
+	}
+
+	_, err = tx.Exec("INSERT INTO transactions (account_from, account_to, amount, description, created_at) VALUES ($1, $2, $3, $4, NOW())",
+		transferDetails.AccountFrom, transferDetails.AccountTo, transferDetails.Amount, "Transfer")
+	if err != nil {
+		http.Error(res, "Could not insert transaction record", http.StatusInternalServerError)
+		return
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		http.Error(res, "Could not commit transaction", http.StatusInternalServerError)
+		return
+	}
+
+	res.WriteHeader(http.StatusOK)
+	json.NewEncoder(res).Encode(map[string]string{"status": "success"})
 }

@@ -53,6 +53,6 @@ GET /accounts/{id}/transactions ✅
 
 > Retrieves a list of all transactions involving a specific account, either as the sender or receiver.
 
-POST /transfer { "account_from": "integer", "account_to": "integer", "amount": "money" }
+POST /transfer { "account_from": "integer", "account_to": "integer", "amount": "money" } ✅
 
 > A specialized endpoint to facilitate money transfer between accounts, wrapping the transaction creation process with additional validations.  
