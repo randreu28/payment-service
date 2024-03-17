@@ -25,15 +25,19 @@ func main() {
 	}
 	router := mux.NewRouter()
 
-	router.HandleFunc("/health", routes.Health)
+	// Public routes
+	router.HandleFunc("/health", routes.Health).Methods("GET")
 	router.HandleFunc("/auth", routes.AuthorizeAccount).Methods("POST")
-
 	router.HandleFunc("/accounts", routes.CreateNewAccount).Methods("POST")
-	router.HandleFunc("/account", routes.GetAccountDetails).Methods("GET").Subrouter().Use(jwt.AuthMiddleware)
-	router.HandleFunc("/account", routes.DeleteAccount).Methods("DELETE").Subrouter().Use(jwt.AuthMiddleware)
-	router.HandleFunc("/transactions/{id}", routes.GetTransactionDetails).Methods("GET")
-	router.HandleFunc("/account/transactions", routes.GetAccountTransactions).Methods("GET").Subrouter().Use(jwt.AuthMiddleware)
-	router.HandleFunc("/transfer", routes.TransferMoney).Methods("POST").Subrouter().Use(jwt.AuthMiddleware)
+
+	// Protected routes
+	protectedRoutes := router.PathPrefix("/").Subrouter()
+	protectedRoutes.Use(jwt.AuthMiddleware)
+	protectedRoutes.HandleFunc("/account", routes.GetAccountDetails).Methods("GET")
+	protectedRoutes.HandleFunc("/account", routes.DeleteAccount).Methods("DELETE")
+	protectedRoutes.HandleFunc("/transactions/{id}", routes.GetTransactionDetails).Methods("GET")
+	protectedRoutes.HandleFunc("/account/transactions", routes.GetAccountTransactions).Methods("GET")
+	protectedRoutes.HandleFunc("/transfer", routes.TransferMoney).Methods("POST")
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
 	server := &http.Server{

@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 	"net/http"
 	db "payment_service/utils/database"
+	jwt "payment_service/utils/jwt"
 	"strconv"
 	"time"
-
-	"github.com/gorilla/mux"
 )
 
 type AccountRequest struct {
@@ -48,13 +47,10 @@ func CreateNewAccount(res http.ResponseWriter, req *http.Request) {
 }
 
 func GetAccountDetails(res http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	unparsedAccountId := vars["id"]
+	jwt, ok := req.Context().Value(jwt.JwtPayloadKey).(*jwt.PaymentServiceJwt)
 
-	accountId, err := strconv.Atoi(unparsedAccountId)
-
-	if err != nil {
-		http.Error(res, "Account ID must be a number", http.StatusBadRequest)
+	if !ok {
+		http.Error(res, "Invalid or expired JWT token", http.StatusUnauthorized)
 		return
 	}
 
@@ -67,7 +63,7 @@ func GetAccountDetails(res http.ResponseWriter, req *http.Request) {
 	var createdAt time.Time
 	var updatedAt time.Time
 
-	err = db.QueryRow("SELECT * FROM accounts WHERE id = $1", accountId).Scan(&id, &accountOwner, &balance, &createdAt, &updatedAt)
+	err := db.QueryRow("SELECT * FROM accounts WHERE id = $1", jwt.Payload.Id).Scan(&id, &accountOwner, &balance, &createdAt, &updatedAt)
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusNotFound)
 		return
@@ -84,20 +80,17 @@ func GetAccountDetails(res http.ResponseWriter, req *http.Request) {
 }
 
 func DeleteAccount(res http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	unparsedAccountId := vars["id"]
+	jwt, ok := req.Context().Value(jwt.JwtPayloadKey).(*jwt.PaymentServiceJwt)
 
-	accountId, err := strconv.Atoi(unparsedAccountId)
-
-	if err != nil {
-		http.Error(res, "Account ID must be a number", http.StatusBadRequest)
+	if !ok {
+		http.Error(res, "Invalid or expired JWT token", http.StatusUnauthorized)
 		return
 	}
 
 	db := db.Open()
 	defer db.Close()
 
-	_, err = db.Exec("DELETE FROM accounts WHERE id = $1", accountId)
+	_, err := db.Exec("DELETE FROM accounts WHERE id = $1", jwt.Payload.Id)
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return

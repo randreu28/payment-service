@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	db "payment_service/utils/database"
 	env "payment_service/utils/env"
+	"payment_service/utils/jwt"
 	"strings"
 	"testing"
 
@@ -46,13 +47,20 @@ func TestGetAccountDetails(t *testing.T) {
 	defer database.Close()
 
 	r := mux.NewRouter()
-	r.HandleFunc("/accounts/{id}", GetAccountDetails).Methods("GET")
+	r.HandleFunc("/account", GetAccountDetails).Methods("GET")
+	r.Use(jwt.AuthMiddleware)
 
-	req, err := http.NewRequest("GET", "/accounts/1", nil)
+	req, err := http.NewRequest("GET", "/account", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
+	token, err := jwt.CreateJwt(1, "Owner1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Authorization", token)
 	res := httptest.NewRecorder()
 	r.ServeHTTP(res, req)
 
@@ -72,12 +80,20 @@ func TestDeleteAccount(t *testing.T) {
 	defer database.Close()
 
 	r := mux.NewRouter()
-	r.HandleFunc("/accounts/{id}", DeleteAccount).Methods("DELETE")
+	r.HandleFunc("/account", DeleteAccount).Methods("DELETE")
+	r.Use(jwt.AuthMiddleware)
 
-	req, err := http.NewRequest("DELETE", "/accounts/1", nil)
+	req, err := http.NewRequest("DELETE", "/account", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	token, err := jwt.CreateJwt(1, "Owner1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req.Header.Set("Authorization", token)
 
 	res := httptest.NewRecorder()
 	r.ServeHTTP(res, req)
