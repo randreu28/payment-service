@@ -1,7 +1,9 @@
 package jwt
 
 import (
+	"context"
 	"errors"
+	"net/http"
 	"os"
 	"time"
 
@@ -57,4 +59,31 @@ func ParseToken(unparsedToken string) (*PaymentServiceJwt, error) {
 	}
 
 	return jwt, nil
+}
+
+// Used to avoid collisions
+type authContext string
+
+const JwtPayloadKey authContext = "jwtPayload"
+
+// AuthMiddleware validates JWT tokens for requests, attatchs the payload to the context
+func AuthMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		authHeader := req.Header.Get("Authorization")
+		if authHeader == "" {
+			http.Error(res, "Authorization header is required", http.StatusUnauthorized)
+			return
+		}
+
+		jwtPayload, err := ParseToken(authHeader)
+		if err != nil {
+			http.Error(res, "Invalid or expired JWT token", http.StatusUnauthorized)
+			return
+		}
+
+		ctx := context.WithValue(req.Context(), JwtPayloadKey, jwtPayload)
+		reqWithCtx := req.WithContext(ctx)
+
+		next.ServeHTTP(res, reqWithCtx)
+	})
 }

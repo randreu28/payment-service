@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"payment_service/routes"
 	"payment_service/utils/env"
+	"payment_service/utils/jwt"
 	"syscall"
 	"time"
 
@@ -26,12 +27,13 @@ func main() {
 
 	router.HandleFunc("/health", routes.Health)
 	router.HandleFunc("/auth", routes.AuthorizeAccount).Methods("POST")
+
 	router.HandleFunc("/accounts", routes.CreateNewAccount).Methods("POST")
-	router.HandleFunc("/accounts/{id}", routes.GetAccountDetails).Methods("GET")
-	router.HandleFunc("/accounts/{id}", routes.DeleteAccount).Methods("DELETE")
+	router.HandleFunc("/account", routes.GetAccountDetails).Methods("GET").Subrouter().Use(jwt.AuthMiddleware)
+	router.HandleFunc("/account", routes.DeleteAccount).Methods("DELETE").Subrouter().Use(jwt.AuthMiddleware)
 	router.HandleFunc("/transactions/{id}", routes.GetTransactionDetails).Methods("GET")
-	router.HandleFunc("/accounts/{id}/transactions", routes.GetAccountTransactions).Methods("GET")
-	router.HandleFunc("/transfer", routes.TransferMoney).Methods("POST")
+	router.HandleFunc("/account/transactions", routes.GetAccountTransactions).Methods("GET").Subrouter().Use(jwt.AuthMiddleware)
+	router.HandleFunc("/transfer", routes.TransferMoney).Methods("POST").Subrouter().Use(jwt.AuthMiddleware)
 
 	loggedRouter := handlers.LoggingHandler(os.Stdout, router)
 	server := &http.Server{
