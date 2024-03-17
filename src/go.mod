@@ -9,4 +9,7 @@ require (
 	github.com/lib/pq v1.10.9
 )
 
-require github.com/felixge/httpsnoop v1.0.3 // indirect
+require (
+	github.com/felixge/httpsnoop v1.0.3 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1
+)
