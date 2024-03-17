@@ -25,6 +25,7 @@ func main() {
 	router := mux.NewRouter()
 
 	router.HandleFunc("/health", routes.Health)
+	router.HandleFunc("/auth", routes.AuthorizeAccount).Methods("POST")
 	router.HandleFunc("/accounts", routes.CreateNewAccount).Methods("POST")
 	router.HandleFunc("/accounts/{id}", routes.GetAccountDetails).Methods("GET")
 	router.HandleFunc("/accounts/{id}", routes.DeleteAccount).Methods("DELETE")
