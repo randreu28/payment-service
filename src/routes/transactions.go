@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	db "payment_service/utils/database"
+	jwt "payment_service/utils/jwt"
 	"strconv"
 	"strings"
 	"time"
@@ -21,9 +22,8 @@ type TransactionDetails struct {
 }
 
 type TransferRequest struct {
-	AccountFrom int     `json:"account_from"`
-	AccountTo   int     `json:"account_to"`
-	Amount      float64 `json:"amount"`
+	AccountTo int     `json:"account_to"`
+	Amount    float64 `json:"amount"`
 }
 
 func GetTransactionDetails(res http.ResponseWriter, req *http.Request) {
@@ -59,19 +59,17 @@ func GetTransactionDetails(res http.ResponseWriter, req *http.Request) {
 }
 
 func GetAccountTransactions(res http.ResponseWriter, req *http.Request) {
-	vars := mux.Vars(req)
-	unparsedAccountId := vars["id"]
+	jwt, ok := req.Context().Value(jwt.JwtPayloadKey).(*jwt.PaymentServiceJwt)
 
-	accountId, err := strconv.Atoi(unparsedAccountId)
-	if err != nil {
-		http.Error(res, "Account ID must be a number", http.StatusBadRequest)
+	if !ok {
+		http.Error(res, "Invalid or expired JWT token", http.StatusUnauthorized)
 		return
 	}
 
 	db := db.Open()
 	defer db.Close()
 
-	rows, err := db.Query("SELECT * FROM transactions WHERE account_from = $1 OR account_to = $1", accountId)
+	rows, err := db.Query("SELECT * FROM transactions WHERE account_from = $1 OR account_to = $1", jwt.Payload.Id)
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
@@ -113,7 +111,16 @@ func TransferMoney(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	if transferDetails.AccountFrom == transferDetails.AccountTo {
+	jwt, ok := req.Context().Value(jwt.JwtPayloadKey).(*jwt.PaymentServiceJwt)
+
+	if !ok {
+		http.Error(res, "Invalid or expired JWT token", http.StatusUnauthorized)
+		return
+	}
+
+	accountFrom := jwt.Payload.Id
+
+	if accountFrom == transferDetails.AccountTo {
 		http.Error(res, "Sender and receiver accounts must be different", http.StatusBadRequest)
 		return
 	}
@@ -134,7 +141,7 @@ func TransferMoney(res http.ResponseWriter, req *http.Request) {
 	defer tx.Rollback()
 
 	var balance string
-	err = tx.QueryRow("SELECT balance FROM accounts WHERE id = $1", transferDetails.AccountFrom).Scan(&balance)
+	err = tx.QueryRow("SELECT balance FROM accounts WHERE id = $1", accountFrom).Scan(&balance)
 
 	if err != nil {
 		http.Error(res, "Sender account not found", http.StatusBadRequest)
@@ -151,7 +158,7 @@ func TransferMoney(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	_, err = tx.Exec("UPDATE accounts SET balance = balance - $1 WHERE id = $2", transferDetails.Amount, transferDetails.AccountFrom)
+	_, err = tx.Exec("UPDATE accounts SET balance = balance - $1 WHERE id = $2", transferDetails.Amount, accountFrom)
 	if err != nil {
 		http.Error(res, "Could not update sender account balance", http.StatusInternalServerError)
 		return
@@ -164,7 +171,7 @@ func TransferMoney(res http.ResponseWriter, req *http.Request) {
 	}
 
 	_, err = tx.Exec("INSERT INTO transactions (account_from, account_to, amount, description, created_at) VALUES ($1, $2, $3, $4, NOW())",
-		transferDetails.AccountFrom, transferDetails.AccountTo, transferDetails.Amount, "Transfer")
+		accountFrom, transferDetails.AccountTo, transferDetails.Amount, "Transfer")
 	if err != nil {
 		http.Error(res, "Could not insert transaction record", http.StatusInternalServerError)
 		return
